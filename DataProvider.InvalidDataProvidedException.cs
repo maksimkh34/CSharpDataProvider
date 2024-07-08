@@ -1,8 +1,19 @@
-﻿namespace AtomicBackuper
+﻿namespace DataProvider
 {
-    [Serializable]
-    internal class InvalidDataProvidedException : Exception
+    public class InvalidDataProvidedException : Exception
+{
+    public InvalidDataProvidedException()
     {
-        public InvalidDataProvidedException() : base("Provided data contains delimeter. ") { }
     }
+
+    public InvalidDataProvidedException(string message)
+        : base(message)
+    {
+    }
+
+    public InvalidDataProvidedException(string message, Exception inner)
+        : base(message, inner)
+    {
+    }
+}
 }

@@ -1,74 +1,91 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace AtomicBackuper
+﻿namespace DataProvider
 {
     internal static class DataProvider
     {
-        public static Dictionary<string, string> LoadDataDict(string fileName, char delimeter='=')
+        public static Dictionary<string, string> LoadDataDict(string fileName, char delimiter = '=')
         {
-            Dictionary<string, string> result = [];
-
-            string[] text = File.ReadAllLines(fileName);
-            if(text.Length == 0) return result;
-
-            foreach(string line in text)
+            Dictionary<string, string> result = new();
+            string[] text;
+            try
             {
-                result.Add(line.Split(delimeter)[0], line.Split(delimeter)[1]);
+                text = File.ReadAllLines(fileName);
             }
-
-            return result;
-        }
-
-        public static List<List<string>> LoadDataList(string fileName, char delimeter=';') 
-        {
-            List<List<string>> result = [];
-
-            string[] text = File.ReadAllLines(fileName);
+            catch (FileNotFoundException)
+            {
+                return new Dictionary<string, string>();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return new Dictionary<string, string>();
+            }
             if (text.Length == 0) return result;
 
-            foreach (string line in text)
+            foreach (var line in text)
             {
-                result.Add([.. line.Split(delimeter)]);
+                result.Add(line.Split(delimiter)[0], line.Split(delimiter)[1]);
             }
 
             return result;
         }
 
-        public static void WriteDataDict(string fileName, Dictionary<string, string> data, char delimeter = '=')
+        public static List<List<string>> LoadDataList(string fileName, char delimiter = '=')
         {
-            using StreamWriter writer = new(fileName);
-            foreach (string key in data.Keys)
+            List<List<string>> result = new();
+
+            string[] text;
+            try
             {
-                if(key.Contains(delimeter) || data[key].Contains(delimeter)) {
+                text = File.ReadAllLines(fileName);
+            }
+            catch (FileNotFoundException)
+            {
+                return new List<List<string>>();
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return new List<List<string>>();
+            }
+            if (text.Length == 0) return result;
+
+            result.AddRange(text.Select(line => line.Split(delimiter)).Select(inputArray => new List<string>(inputArray)));
+
+            return result;
+        }
+
+        public static void WriteDataDict(string fileName, Dictionary<string, string> data, char delimiter = '=')
+        {
+            var spittedPath = fileName.Split("\\");
+            var path = string.Join("\\", spittedPath.Skip(0).Take(spittedPath.Length - 1));
+            Directory.CreateDirectory(path);
+            using StreamWriter writer = new(fileName);
+            foreach (var key in data.Keys)
+            {
+                if (key.Contains(delimiter) || data[key].Contains(delimiter))
+                {
                     throw new InvalidDataProvidedException();
                 }
-                writer.WriteLine(key + delimeter + data[key]);
+                writer.WriteLine(key + delimiter + data[key]);
             }
         }
 
-        public static void WriteDataList(string fileName, List<List<string>> data, char delimeter = '=')
+        public static void WriteDataList(string fileName, List<List<string>> data, char delimiter = '=')
         {
             using StreamWriter writer = new(fileName);
-            foreach (List<string> dataLine in data)
+            foreach (var dataLine in data)
             {
-                string output = "";
-                foreach(string line in dataLine)
+                var output = "";
+                foreach (var line in dataLine)
                 {
-                    if (line.Contains(delimeter))
+                    if (line.Contains(delimiter))
                     {
                         throw new InvalidDataProvidedException();
                     }
-                    output += line + delimeter;
+                    output += line + delimiter;
                 }
                 output = output.Remove(output.Length - 1, 1);
                 writer.WriteLine(output);
             }
         }
     }
+
 }
